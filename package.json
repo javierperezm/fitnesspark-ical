@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@upstash/redis": "1.34.6",
     "ical-generator": "8.1.1",
     "jsdom": "26.0.0",
     "next": "15.2.3",
