@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom'
 
+import { CRON_SECRET } from '@/config'
 import { saveEventsToCache } from '@/lib/eventsCache'
 import { CourseStatus, FitnessparkEvent, RoomNumber } from '@/types'
 
@@ -146,6 +147,10 @@ const extractEvents = async (
 }
 
 export const GET = async (req: Request) => {
+  if (req.headers.get('Authorization') !== `Bearer ${CRON_SECRET}`) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
   const urlParams = new URL(req.url).searchParams
   const shops = urlParams.get('shops')?.split(',').map(Number) ?? [] // 169 = Zug
 
@@ -170,7 +175,7 @@ export const GET = async (req: Request) => {
 
   await saveEventsToCache(events, shops)
 
-  return new Response('OK')
+  return Response.json({ ok: true })
 }
 
 const delay = (seconds: number): Promise<void> => {
