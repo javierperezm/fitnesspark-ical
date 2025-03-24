@@ -1,62 +1,16 @@
 import ical from 'ical-generator'
 import { JSDOM } from 'jsdom'
 
+import extractFitnessparkStatus from '@/lib/extractFitnessparkStatus'
 import getFitnessParkUrl from '@/lib/getFitnessParkUrl'
 import getTZDate from '@/lib/getTZDate'
-
-const getTimeDifferenceInMinutes = (timeRange: string): number => {
-  const [start, end] = timeRange.split(' - ')
-  const [startHours, startMinutes] = start.split(':').map(Number)
-  const [endHours, endMinutes] = end.split(':').map(Number)
-
-  const startDate = new Date()
-  startDate.setHours(startHours, startMinutes, 0, 0)
-
-  const endDate = new Date()
-  endDate.setHours(endHours, endMinutes, 0, 0)
-
-  const differenceInMilliseconds = endDate.getTime() - startDate.getTime()
-  const differenceInMinutes = differenceInMilliseconds / (1000 * 60)
-
-  return differenceInMinutes
-}
-
-const fitnessparkStatus = (status: string): [CourseStatus, number?] => {
-  const freeSlotsMatch = status.match(/(\d+)\s*Frei/)
-  if (freeSlotsMatch) {
-    return [CourseStatus.AVAILABLE, Number(freeSlotsMatch[1])]
-  }
-
-  return [
-    {
-      'nicht mehr verfÃ¼gbar': CourseStatus.CANCELLED,
-      'nicht mehr verfügbar': CourseStatus.CANCELLED,
-      ausgebucht: CourseStatus.FULL,
-      Anstehend: CourseStatus.PENDING,
-    }[status] ?? CourseStatus.UNKNOWN,
-  ]
-}
-
-const extractRoomNumber = (room: string): RoomNumber => {
-  if (room.match(/Bad/) && !room.match(/Kursraum/)) {
-    return 'pool'
-  }
-
-  const match = room.match(/Kursraum\s+(\d+)/)
-  // TODO "Bad"
-  return match ? Number(match[1]) : 0
-}
-
-enum CourseStatus {
-  AVAILABLE = 'available',
-  FULL = 'full',
-  CANCELLED = 'cancelled',
-  UNKNOWN = 'unknown',
-  PENDING = 'pending',
-}
-
-type RoomNumber = number | 'pool'
-type ReturnFormat = 'ical' | 'text' | 'html' | 'json'
+import getTimeDifferenceInMinutes from '@/lib/getTimeDifferenceInMinutes'
+import {
+  CourseStatus,
+  FitnessparkEvent,
+  ReturnFormat,
+  RoomNumber,
+} from '@/types'
 
 export const GET = async (req: Request) => {
   const urlParams = new URL(req.url).searchParams
@@ -94,17 +48,7 @@ export const GET = async (req: Request) => {
 
   // Aquí extraes los datos de la tabla
   const rows = table.querySelectorAll('tr')
-  const events: {
-    fullDate: Date
-    timeStart: string
-    duration: number
-    name: string
-    status: CourseStatus
-    freeSlots: number
-    location: string
-    room: RoomNumber
-    trainer: string
-  }[] = []
+  const events: FitnessparkEvent[] = []
 
   let currentDate = ''
 
@@ -134,15 +78,15 @@ export const GET = async (req: Request) => {
         name: cells[1]
           .querySelectorAll('div.table-cell')[0]
           .textContent!.trim(),
-        status: fitnessparkStatus(
+        status: extractFitnessparkStatus(
           cells[1].querySelectorAll('div.table-cell')[1].textContent!.trim(),
         )[0],
         freeSlots:
-          fitnessparkStatus(
+          extractFitnessparkStatus(
             cells[1].querySelectorAll('div.table-cell')[1].textContent!.trim(),
           )[1] ?? 0,
         location: cells[3].textContent!.trim(),
-        room: extractRoomNumber(cells[4].textContent!.trim()),
+        room: extractFitnessparkStatus(cells[4].textContent!.trim())[1],
         trainer: cells[5].textContent!.trim(),
       }
 
@@ -156,12 +100,20 @@ export const GET = async (req: Request) => {
 
   const calendar = ical({ name: 'Fitnesspark Events' })
 
+  const statusEmoji = {
+    [CourseStatus.AVAILABLE]: '✅',
+    [CourseStatus.FULL]: '❌',
+    [CourseStatus.CANCELLED]: '❌',
+    [CourseStatus.UNKNOWN]: '❓',
+    [CourseStatus.PENDING]: '⏳',
+  }
+
   events.forEach((event) => {
     calendar.createEvent({
       start: event.fullDate,
       timezone: 'Europe/Zurich',
       end: new Date(event.fullDate.getTime() + event.duration * 60000),
-      summary: `${event.name} - ${event.trainer}`,
+      summary: `${statusEmoji[event.status]} ${event.name} → ${event.trainer}`,
       description: `Room: ${event.room}, Status: ${event.status}, Free Slots: ${event.freeSlots}, Trainer: ${event.trainer}`,
       location: event.location,
     })

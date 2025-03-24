@@ -18,6 +18,6 @@ export type FitnessparkEvent = {
   status: CourseStatus
   freeSlots: number
   location: string
-  room: RoomNumber
+  room?: RoomNumber
   trainer: string
 }
