@@ -42,7 +42,7 @@ const calculateTTL = (date: Date) => {
     ttl = 60 * 60 // 60 minutes
   }
 
-  console.log('TTL:', ttl)
+  // console.log('TTL:', ttl)
 
   return ttl
 }
