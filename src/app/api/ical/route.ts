@@ -18,6 +18,7 @@ export const GET = async (req: Request) => {
   }
 
   const calendar = ical({ name: 'Fitnesspark Events' })
+  calendar.timezone('Europe/Zurich')
 
   events.forEach((event) => {
     const fullDate = new Date(event.fullDate)
