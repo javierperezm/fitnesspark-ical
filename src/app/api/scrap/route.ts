@@ -27,7 +27,7 @@ export const GET = async (req: Request) => {
     return Response.json({ locations, categories, events })
   }
 
-  const icalString = generateCalendarContent(events)
+  const icalString = generateCalendarContent('Fitnesspark', events)
 
   return new Response(icalString, {
     headers: {
