@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom'
 import extractFitnessparkStatus from '@/lib/extractFitnessparkStatus'
 import extractRoomNumber from '@/lib/extractRoomNumber'
 import getFitnessParkUrl from '@/lib/getFitnessParkUrl'
+import getTZDate from '@/lib/getTZDate'
 import getTimeDifferenceInMinutes from '@/lib/getTimeDifferenceInMinutes'
 import { FitnessparkEvent } from '@/types'
 
@@ -49,7 +50,7 @@ export default async function extractEventsByDay(
       // course
 
       const timeStart = cells[0].textContent?.split(' - ')[0]!
-      const fullDate = new Date(`${currentDate} ${timeStart}`)
+      const fullDate = getTZDate(currentDate, timeStart, 'Europe/Zurich')
 
       const data = {
         fullDate,
