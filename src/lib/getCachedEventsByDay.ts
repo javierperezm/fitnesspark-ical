@@ -28,7 +28,7 @@ export const getCachedEventsByDay = async (
   await redis.set<FitnessparkEvent[]>(eventsKey, events)
   await redis.expire(eventsKey, calculateTTL(date))
 
-  await delay(0.1)
+  await delay(0.5)
 
   return events
 }
