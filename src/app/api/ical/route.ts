@@ -17,8 +17,14 @@ export const GET = async (req: Request) => {
     return Response.json(events)
   }
 
-  const calendar = ical({ name: 'Fitnesspark Events' })
-  calendar.timezone('Europe/Zurich')
+  const shopNames: Record<number, string> = {
+    169: 'Zug',
+  }
+
+  const calendar = ical({
+    name: `Fitnesspark ${shops.map((id) => shopNames[id]).join('/')} Events`,
+    timezone: 'Europe/Zurich',
+  })
 
   events.forEach((event) => {
     const fullDate = new Date(event.fullDate)
@@ -36,7 +42,7 @@ export const GET = async (req: Request) => {
 
     calendar.createEvent({
       start: fullDate,
-      timezone: 'Europe/Zurich',
+      // timezone: 'Europe/Zurich',
       end: new Date(fullDate.getTime() + event.duration * 60000),
       summary: `${event.name} - ${event.trainer}`,
       description: `Room: ${event.room}, Status: ${event.status}, Free Slots: ${event.freeSlots}, Trainer: ${event.trainer}`,
