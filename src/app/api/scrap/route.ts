@@ -114,7 +114,12 @@ export const GET = async (req: Request) => {
       timezone: 'Europe/Zurich',
       end: new Date(event.fullDate.getTime() + event.duration * 60000),
       summary: `${statusEmoji[event.status]} ${event.name} → ${event.trainer}`,
-      description: `Room: ${event.room}, Status: ${event.status}, Free Slots: ${event.freeSlots}, Trainer: ${event.trainer}`,
+      description: [
+        `Room: ${event.room}`,
+        `Status: ${event.status}`,
+        `Free Slots: ${event.freeSlots}`,
+        `Trainer: ${event.trainer}`,
+      ].join('\n'),
       location: event.location,
     })
   })
