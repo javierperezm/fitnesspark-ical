@@ -6,7 +6,7 @@ const getKey = (shops: number[]) => `fitnesspark-events-${shops.join('.')}`
 export const saveEventsToCache = async (
   events: FitnessparkEvent[],
   shops: number[],
-) => redis.set(getKey(shops), JSON.stringify(events))
+) => redis.set<FitnessparkEvent[]>(getKey(shops), events)
 
 export const getEventsFromCache = async (shops: number[]) =>
   (await redis.get<FitnessparkEvent[]>(getKey(shops))) ?? []

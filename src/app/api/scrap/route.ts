@@ -1,44 +1,8 @@
 import ical from 'ical-generator'
 import { JSDOM } from 'jsdom'
 
-const getFitnessParkUrl = (data: {
-  accountArea: number
-  iframe: string
-  articles: boolean
-  date?: string
-  offset?: number
-  shops: number[]
-}) => {
-  // initial:
-  // https://shop-fp-national.fitnesspark.ch/shop/courses/category/?&accountArea=1&iframe=yes&articles=true&offset=0&shops%5B%5D=576&_=1742629820299
-  // https://shop-fp-national.fitnesspark.ch/shop/courses/category/?&accountArea=1&iframe=yes&articles=true&offset=0&shops%5B%5D=169&_=1742629820301
-
-  // Mehr:
-  // https://shop-fp-national.fitnesspark.ch/shop/courses/category/?articles=1&more=1&iframe=yes&date=2025-03-23&_=1742629820302
-  // https://shop-fp-national.fitnesspark.ch/shop/courses/category/?articles=1&more=1&iframe=yes&date=2025-03-23&_=1742629820300
-  // https://shop-fp-national.fitnesspark.ch/shop/courses/category/?articles=1&more=1&iframe=yes&date=2025-03-25&_=1742629820303
-
-  const url = new URL(
-    'https://shop-fp-national.fitnesspark.ch/shop/courses/category/',
-  )
-  url.searchParams.append('accountArea', data.accountArea.toString()) // "1" or nothing
-  url.searchParams.append('iframe', data.iframe) // "yes"
-  url.searchParams.append('articles', data.articles.toString()) // "1" or "true"
-
-  if (data.date) {
-    url.searchParams.append('date', data.date)
-  }
-
-  if (data.offset !== undefined) {
-    url.searchParams.append('offset', data.offset.toString())
-  }
-
-  data.shops.forEach((shop) => {
-    url.searchParams.append('shops[]', shop.toString())
-  })
-
-  return url.toString()
-}
+import getFitnessParkUrl from '@/lib/getFitnessParkUrl'
+import getTZDate from '@/lib/getTZDate'
 
 const getTimeDifferenceInMinutes = (timeRange: string): number => {
   const [start, end] = timeRange.split(' - ')
@@ -107,7 +71,7 @@ export const GET = async (req: Request) => {
     articles: true,
     offset: 0,
     shops,
-    date: '2025-03-22',
+    date: new Date('2025-03-24'),
   })
 
   const response = await fetch(url)
@@ -157,7 +121,11 @@ export const GET = async (req: Request) => {
       // course
 
       const timeStart = cells[0].textContent?.split(' - ')[0]!
-      const fullDate = new Date(`${currentDate} ${timeStart}`)
+      // const fullDate = new Date(`${currentDate} ${timeStart}`)
+
+      const timeZone = 'Europe/Zurich'
+      // const timeZone = 'local'
+      const fullDate = getTZDate(currentDate, timeStart, timeZone)
 
       const data = {
         fullDate,
@@ -191,6 +159,7 @@ export const GET = async (req: Request) => {
   events.forEach((event) => {
     calendar.createEvent({
       start: event.fullDate,
+      timezone: 'Europe/Zurich',
       end: new Date(event.fullDate.getTime() + event.duration * 60000),
       summary: `${event.name} - ${event.trainer}`,
       description: `Room: ${event.room}, Status: ${event.status}, Free Slots: ${event.freeSlots}, Trainer: ${event.trainer}`,

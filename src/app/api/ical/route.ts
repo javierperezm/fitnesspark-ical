@@ -35,6 +35,7 @@ export const GET = async (req: Request) => {
 
     calendar.createEvent({
       start: fullDate,
+      timezone: 'Europe/Zurich',
       end: new Date(fullDate.getTime() + event.duration * 60000),
       summary: `${event.name} - ${event.trainer}`,
       description: `Room: ${event.room}, Status: ${event.status}, Free Slots: ${event.freeSlots}, Trainer: ${event.trainer}`,
