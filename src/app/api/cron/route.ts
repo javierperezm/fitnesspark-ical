@@ -4,16 +4,17 @@ import { getCachedEventsByDay } from '@/lib/getCachedEventsByDay'
 import { FitnessparkEvent } from '@/types'
 
 export const GET = async (req: Request) => {
+  const urlParams = new URL(req.url).searchParams
   const hostname = new URL(req.url).hostname
 
   if (
     hostname !== 'localhost' &&
-    req.headers.get('Authorization') !== `Bearer ${CRON_SECRET}`
+    req.headers.get('Authorization') !== `Bearer ${CRON_SECRET}` &&
+    urlParams.get('secret') !== CRON_SECRET
   ) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const urlParams = new URL(req.url).searchParams
   const shops = urlParams.get('shops')?.split(',').map(Number) ?? [] // 169 = Zug
 
   // get 7 days of data
