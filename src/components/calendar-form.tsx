@@ -2,8 +2,12 @@
 
 import { Dispatch, SetStateAction, useMemo, useState } from 'react'
 
-import { set } from 'date-fns'
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react'
+import {
+  CalendarIcon,
+  Check,
+  ChevronsUpDown,
+  ClipboardCopy,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -22,6 +26,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
+import { GOOGLE_CALENDAR_ADD_BY_URL } from '@/config'
 import { useFilters } from '@/hooks/use-filters'
 import generateCalendarUrl from '@/lib/generateCalendarUrl'
 import { cn } from '@/lib/utils'
@@ -64,12 +69,10 @@ export function CalendarForm() {
     return generateCalendarUrl(selectedCenters, selectedClassTypes, baseUrl)
   }, [selectedCenters, selectedClassTypes])
 
-  const handleAddToGoogleCalendar = () => {
+  const handleAddToGoogleCalendar = async () => {
     if (!calendarUrl) return
-
-    // Google Calendar import URL
-    const googleCalendarUrl = `https://calendar.google.com/calendar/r/settings/addbyurl?url=${encodeURIComponent(calendarUrl)}`
-    window.open(googleCalendarUrl, '_blank')
+    await navigator.clipboard.writeText(calendarUrl)
+    window.open(GOOGLE_CALENDAR_ADD_BY_URL, '_blank')
   }
 
   return (
@@ -185,16 +188,20 @@ export function CalendarForm() {
 
           {calendarUrl ? (
             <div className="mt-6 space-y-4">
-              <div className="p-3 bg-muted rounded-md break-all">
-                <p className="text-sm font-mono">{calendarUrl}</p>
-              </div>
+              <CopyCalendarUrl url={calendarUrl} />
+
+              <p className="text-sm text-gray-500 text-center">
+                Click the button below to copy the link and redirect to Google
+                Calendar, and then paste the URL
+              </p>
+
               <Button
                 className="w-full"
                 onClick={handleAddToGoogleCalendar}
                 variant="default"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                Add to Google Calendar
+                Copy URL and go to Google Calendar
               </Button>
             </div>
           ) : (
@@ -206,31 +213,29 @@ export function CalendarForm() {
   )
 }
 
-const SelectedCategoriesList = ({
-  categories,
-  selected,
-  setSelectedCategories,
-}: {
-  categories: FitnessparkFetchDataFilter[]
-  selected: number[]
-  setSelectedCategories: Dispatch<SetStateAction<number[]>>
-}) => {
+function CopyCalendarUrl({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Error copying to clipboard:', err)
+    }
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-4 mt-4">
-      {selected?.map((catId) => {
-        const type = categories.find((cat) => cat.id === catId) ?? {
-          id: 0,
-          name: '',
-        }
-        return (
-          <div key={type.id} className="flex items-center space-x-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {type.name}
-            </label>
-          </div>
-        )
-      })}
-    </div>
+    <Button
+      variant="ghost"
+      onClick={handleCopy}
+      className="w-full break-all flex items-center gap-2 bg-gray-100 rounded-xl py-6 text-sm font-mono justify-between text-gray-500 hover:text-black transition"
+      aria-label="Copy to clipboard"
+    >
+      <code className="truncate max-w-[650px] font-mono">{url}</code>
+      {copied ? <Check size={18} /> : <ClipboardCopy size={18} />}
+    </Button>
   )
 }
 

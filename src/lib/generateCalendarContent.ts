@@ -45,6 +45,8 @@ export default function generateCalendarContent(
         `Free Slots: ${event.freeSlots}`,
         `Trainer: ${event.trainer}`,
         `Room: ${event.room}`,
+        ``,
+        `by Javier Pérez: https://javierperez.com/`,
       ].join('\n'),
       location: event.location,
       id: eventId,

@@ -33,17 +33,27 @@ export default function RootLayout({
       >
         <ReactQueryProvider>{children}</ReactQueryProvider>
 
-        <footer className="text-center text-muted-foreground text-sm mt-8">
-          <p>
+        <footer className="text-center text-muted-foreground text-sm my-8">
+          <p className="flex justify-center items-center gap-2">
             <Link
-              className="hover:text-black hover:underline"
+              className="hover:text-black hover:underline font-bold"
               href="
 https://javierperez.com?utm_sourcefitnesspark-ical&utm_medium=footer&utm_campaign=fitnesspark-ical"
               target="_blank"
               rel="noopener noreferrer"
             >
               &copy; {new Date().getFullYear()} Javier Pérez
-            </Link>
+            </Link>{' '}
+            •{' '}
+            <Link
+              href="https://paypal.me/javierperezcom"
+              className="hover:text-black hover:underline font-bold"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Donate
+            </Link>{' '}
+            • <span>made in 🇨🇭 with ❤️ </span>
           </p>
         </footer>
       </body>
