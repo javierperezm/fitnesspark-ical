@@ -3,7 +3,7 @@ import { format } from 'date-fns'
 import delay from '@/lib/delay'
 import extractEventsByDay from '@/lib/extractEventsByDay'
 import { redis } from '@/lib/redis'
-import { FitnessparkEvent } from '@/types'
+import { FitnessparkEvent, FitnessparkFetchDataFilter } from '@/types'
 
 const getKey = (shop: number, date: Date) =>
   `fitnesspark-shop-day-events-${shop}-${format(date, 'yyyy-MM-dd')}`
@@ -12,16 +12,21 @@ export const getCachedEventsByDay = async (
   shop: number,
   date: Date,
 ): Promise<FitnessparkEvent[]> => {
-  const key = getKey(shop, date)
+  const eventsKey = getKey(shop, date)
 
-  const cachedEvents = await redis.get<FitnessparkEvent[]>(key)
+  const cachedEvents = await redis.get<FitnessparkEvent[]>(eventsKey)
   if (cachedEvents) return cachedEvents
 
   // EXTRACT
-  const events = await extractEventsByDay(shop, date)
+  const { events, locations, categories } = await extractEventsByDay(shop, date)
 
-  await redis.set<FitnessparkEvent[]>(key, events)
-  await redis.expire(key, calculateTTL(date))
+  // console.log('getCachedEventsByDay', { shop, date, events: events.length })
+
+  await redis.set<FitnessparkFetchDataFilter[]>('locations', locations)
+  await redis.set<FitnessparkFetchDataFilter[]>('categories', categories)
+
+  await redis.set<FitnessparkEvent[]>(eventsKey, events)
+  await redis.expire(eventsKey, calculateTTL(date))
 
   await delay(1)
 

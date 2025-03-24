@@ -21,3 +21,8 @@ export type FitnessparkEvent = {
   room?: RoomNumber
   trainer: string
 }
+
+export type FitnessparkFetchDataFilter = {
+  id: number
+  name: string
+}

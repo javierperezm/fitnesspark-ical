@@ -2,34 +2,53 @@ import { JSDOM } from 'jsdom'
 
 import extractFitnessparkStatus from '@/lib/extractFitnessparkStatus'
 import extractRoomNumber from '@/lib/extractRoomNumber'
-import getFitnessParkUrl from '@/lib/getFitnessParkUrl'
+import fetchData from '@/lib/fetchData'
 import getTZDate from '@/lib/getTZDate'
 import getTimeDifferenceInMinutes from '@/lib/getTimeDifferenceInMinutes'
-import { FitnessparkEvent } from '@/types'
+import { FitnessparkEvent, FitnessparkFetchDataFilter } from '@/types'
 
 export default async function extractEventsByDay(
   shop: number,
   date: Date,
-): Promise<FitnessparkEvent[]> {
-  const url = getFitnessParkUrl({
-    accountArea: 1,
-    iframe: 'yes',
-    articles: true,
-    offset: 0,
-    shops: [shop],
-    date,
-  })
-
-  const response = await fetch(url)
-  const data = await response.json()
-  const htmlContent = data.articles as string
+): Promise<{
+  locations: FitnessparkFetchDataFilter[]
+  categories: FitnessparkFetchDataFilter[]
+  events: FitnessparkEvent[]
+}> {
+  const htmlContent = await fetchData(shop, date)
 
   const dom = new JSDOM(htmlContent)
   const document = dom.window.document
+
+  // fetch fitnesspark locations
+  const [selectLocations, selectCategories] = document.querySelectorAll(
+    'select.course-list__filter',
+  )
+  const locations = Array.from(selectLocations.querySelectorAll('option')).map(
+    (option) => ({
+      id: Number(option.getAttribute('data-location')!),
+      name: option.textContent!.trim(),
+    }),
+  )
+
+  const categories = Array.from(
+    selectCategories.querySelectorAll('option'),
+  ).map((option) => {
+    const tid = option.getAttribute('data-tid')!.trim()
+    const m = tid.match(/\[(\d+)\]/)
+    const id = m ? Number(m[1]) : 0
+    return {
+      id,
+      name: option.textContent!.trim(),
+    }
+  })
+
+  // console.log('extractEventsByDay', { locations, categories })
+
   const table = document.querySelector('table')
 
   if (!table) {
-    return []
+    return { locations, categories, events: [] }
   }
 
   const rows = table.querySelectorAll('tr')
@@ -74,5 +93,5 @@ export default async function extractEventsByDay(
       events.push(data)
     }
   })
-  return events
+  return { locations, categories, events }
 }
