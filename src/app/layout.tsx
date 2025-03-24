@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Link from 'next/link'
@@ -56,6 +57,7 @@ https://javierperez.com?utm_sourcefitnesspark-ical&utm_medium=footer&utm_campaig
             • <span>made in 🇨🇭 with ❤️ </span>
           </p>
         </footer>
+        <Analytics />
       </body>
     </html>
   )
