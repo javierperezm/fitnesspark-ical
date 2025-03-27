@@ -7,6 +7,7 @@ import getTZDate from '@/lib/getTZDate'
 import getTimeDifferenceInMinutes from '@/lib/getTimeDifferenceInMinutes'
 import { FitnessparkEvent, FitnessparkFetchDataFilter } from '@/types'
 
+// scrapper
 export default async function extractEventsByDay(
   shop: number,
   date: Date,
@@ -72,6 +73,7 @@ export default async function extractEventsByDay(
       const fullDate = getTZDate(currentDate, timeStart, 'Europe/Zurich')
 
       const data = {
+        shop,
         fullDate,
         timeStart,
         duration: getTimeDifferenceInMinutes(cells[0].textContent!),

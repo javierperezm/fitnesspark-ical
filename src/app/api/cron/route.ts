@@ -1,12 +1,11 @@
 import { CRON_SECRET } from '@/config'
+import { getShopsFromCache } from '@/lib/cachedShops'
 import { saveEventsToCache } from '@/lib/eventsCache'
-import { getCachedEventsByDay } from '@/lib/getCachedEventsByDay'
-import { FitnessparkEvent } from '@/types'
+import { ScrapperWorker } from '@/lib/scrapper-worker'
 
 export const GET = async (req: Request) => {
   const urlParams = new URL(req.url).searchParams
   const hostname = new URL(req.url).hostname
-
   if (
     hostname !== 'localhost' &&
     req.headers.get('Authorization') !== `Bearer ${CRON_SECRET}` &&
@@ -15,32 +14,18 @@ export const GET = async (req: Request) => {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const shops = urlParams.get('shops')?.split(',').map(Number) ?? [] // 169 = Zug
-
-  // get 7 days of data
-  const dates = []
-  const today = new Date()
-  today.setDate(today.getDate() - 1)
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    dates.push(date)
-  }
+  const shops = await getShopsFromCache()
 
   try {
-    let events: FitnessparkEvent[] = []
-    for (const date of dates) {
-      for (const shop of shops) {
-        const newEvents = await getCachedEventsByDay(shop, date)
-        events = events.concat(newEvents)
-      }
-    }
+    // the magic happens here: fetch data from the web and cache it
+    const events = await new ScrapperWorker(shops).execute()
 
-    await saveEventsToCache(events, shops)
+    // this is the data that /api/ical will use
+    await saveEventsToCache(events)
+
+    return Response.json({ ok: true })
   } catch (error) {
     console.error(error)
     return Response.json({ ok: false })
   }
-
-  return Response.json({ ok: true })
 }

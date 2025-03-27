@@ -1,12 +1,12 @@
 import { redis } from '@/lib/redis'
 import { FitnessparkEvent } from '@/types'
 
-const getKey = (shops: number[]) => `fitnesspark-events-${shops.join('.')}`
+const getKey = () => `fitnesspark-events`
 
-export const saveEventsToCache = async (
-  events: FitnessparkEvent[],
-  shops: number[],
-) => redis.set<FitnessparkEvent[]>(getKey(shops), events)
+export const saveEventsToCache = async (events: FitnessparkEvent[]) =>
+  redis.set<FitnessparkEvent[]>(getKey(), events)
 
 export const getEventsFromCache = async (shops: number[]) =>
-  (await redis.get<FitnessparkEvent[]>(getKey(shops))) ?? []
+  ((await redis.get<FitnessparkEvent[]>(getKey())) ?? []).filter((event) =>
+    shops.includes(event.shop),
+  )

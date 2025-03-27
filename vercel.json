@@ -1,13 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron?shops=169",
+      "path": "/api/cron",
       "schedule": "0,30 * * * *"
     }
-  ],
-  "functions": {
-    "app/api/**/*": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }

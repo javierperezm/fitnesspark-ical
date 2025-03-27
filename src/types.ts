@@ -11,6 +11,7 @@ export type RoomNumber = number | 'pool'
 export type ReturnFormat = 'ical' | 'text' | 'html' | 'json'
 
 export type FitnessparkEvent = {
+  shop: number
   fullDate: Date
   timeStart: string
   duration: number

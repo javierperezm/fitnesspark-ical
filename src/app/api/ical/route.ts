@@ -1,3 +1,4 @@
+import { getShopsFromCache, saveShopsToCache } from '@/lib/cachedShops'
 import { getEventsFromCache } from '@/lib/eventsCache'
 import generateCalendarContent from '@/lib/generateCalendarContent'
 import { redis } from '@/lib/redis'
@@ -18,6 +19,14 @@ const filterEvents = async (events: FitnessparkEvent[], filters: number[]) => {
   )
 }
 
+const updateCachedShops = async (shops: number[]) => {
+  const cachedShops = await getShopsFromCache()
+  const newShops = [...new Set([...cachedShops, ...shops])]
+  if (newShops.length !== cachedShops.length) {
+    await saveShopsToCache(newShops)
+  }
+}
+
 export const GET = async (req: Request) => {
   // get query params
   const urlParams = new URL(req.url).searchParams
@@ -25,6 +34,8 @@ export const GET = async (req: Request) => {
     (urlParams.get('format') as ReturnFormat) ?? 'ical'
   const shops = urlParams.get('shops')?.split(',').map(Number) ?? [] // 169 = Zug
   const filters = urlParams.get('categories')?.split(',').map(Number) ?? []
+
+  await updateCachedShops(shops)
 
   // fetch events
   const events = await getEventsFromCache(shops)
