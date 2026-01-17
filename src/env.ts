@@ -3,7 +3,8 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    REDIS_URL: z.string().min(1),
+    KV_REST_API_URL: z.string().url(),
+    KV_REST_API_TOKEN: z.string().min(1),
     CRON_SECRET: z.string().min(1),
     BASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -13,7 +14,8 @@ export const env = createEnv({
     // No client variables needed
   },
   runtimeEnv: {
-    REDIS_URL: process.env.REDIS_URL,
+    KV_REST_API_URL: process.env.KV_REST_API_URL,
+    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
     CRON_SECRET: process.env.CRON_SECRET,
     BASE_URL: process.env.BASE_URL,
     NODE_ENV: process.env.NODE_ENV,
