@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { DateTime } from 'luxon'
 
 import delay from '@/lib/delay'
 import extractEventsByDay from '@/lib/extractEventsByDay'
@@ -29,7 +29,7 @@ export class ScrapperWorker {
   }
 
   protected getKey = (shop: number, date: Date) =>
-    `fitnesspark-shop-day-events-${shop}-${format(date, 'yyyy-MM-dd')}`
+    `fitnesspark-shop-day-events-${shop}-${DateTime.fromJSDate(date).toFormat('yyyy-MM-dd')}`
 
   protected getCache = async (shop: number, date: Date) =>
     await redis.get<FitnessparkEvent[]>(this.getKey(shop, date))
