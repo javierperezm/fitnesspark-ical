@@ -22,27 +22,28 @@ export default async function extractEventsByDay(
   const document = dom.window.document
 
   // fetch fitnesspark locations
-  const [selectLocations, selectCategories] = document.querySelectorAll(
-    'select.course-list__filter',
-  )
-  const locations = Array.from(selectLocations.querySelectorAll('option')).map(
-    (option) => ({
-      id: Number(option.getAttribute('data-location')!),
-      name: option.textContent!.trim(),
-    }),
-  )
+  const selects = document.querySelectorAll('select.course-list__filter')
+  const selectLocations = selects[0]
+  const selectCategories = selects[1]
 
-  const categories = Array.from(
-    selectCategories.querySelectorAll('option'),
-  ).map((option) => {
-    const tid = option.getAttribute('data-tid')!.trim()
-    const m = tid.match(/\[(\d+)\]/)
-    const id = m ? Number(m[1]) : 0
-    return {
-      id,
-      name: option.textContent!.trim(),
-    }
-  })
+  const locations = selectLocations
+    ? Array.from(selectLocations.querySelectorAll('option')).map((option) => ({
+        id: Number(option.getAttribute('data-location') ?? 0),
+        name: option.textContent?.trim() ?? '',
+      }))
+    : []
+
+  const categories = selectCategories
+    ? Array.from(selectCategories.querySelectorAll('option')).map((option) => {
+        const tid = option.getAttribute('data-tid')?.trim() ?? ''
+        const m = tid.match(/\[(\d+)\]/)
+        const id = m ? Number(m[1]) : 0
+        return {
+          id,
+          name: option.textContent?.trim() ?? '',
+        }
+      })
+    : []
 
   // console.log('extractEventsByDay', { locations, categories })
 
@@ -62,34 +63,45 @@ export default async function extractEventsByDay(
 
     if (row.classList.contains('course-list__table__date-header')) {
       // date
-      const dateString = cells[0].textContent!.trim()
-      const [_, datePart] = dateString.split(', ')
-      const [day, month, year] = datePart.split('.')
+      const dateString = cells[0].textContent?.trim() ?? ''
+      const parts = dateString.split(', ')
+      if (parts.length < 2) {
+        console.warn('Unexpected date format:', dateString)
+        return // Skip this row
+      }
+      const datePart = parts[1]
+      const dateParts = datePart.split('.')
+      if (dateParts.length < 3) {
+        console.warn('Unexpected date part format:', datePart)
+        return
+      }
+      const [day, month, year] = dateParts
       currentDate = `${year}-${month}-${day}`
     } else if (row.classList.contains('course-list__table__course')) {
       // course
+      const timeCell = cells[0]?.textContent ?? ''
+      const timeStart = timeCell.split(' - ')[0] ?? ''
 
-      const timeStart = cells[0].textContent?.split(' - ')[0]!
+      if (!timeStart || !currentDate) {
+        console.warn('Missing time or date for course row')
+        return
+      }
+
       const fullDate = getTZDate(currentDate, timeStart, 'Europe/Zurich')
+      const tableCells = cells[1]?.querySelectorAll('div.table-cell') ?? []
+      const statusText = tableCells[1]?.textContent?.trim() ?? ''
 
       const data = {
         shop,
         fullDate,
         timeStart,
-        duration: getTimeDifferenceInMinutes(cells[0].textContent!),
-        name: cells[1]
-          .querySelectorAll('div.table-cell')[0]
-          .textContent!.trim(),
-        status: extractFitnessparkStatus(
-          cells[1].querySelectorAll('div.table-cell')[1].textContent!.trim(),
-        )[0],
-        freeSlots:
-          extractFitnessparkStatus(
-            cells[1].querySelectorAll('div.table-cell')[1].textContent!.trim(),
-          )[1] ?? 0,
-        location: cells[3].textContent!.trim(),
-        room: extractRoomNumber(cells[4].textContent!.trim()),
-        trainer: cells[5].textContent!.trim(),
+        duration: getTimeDifferenceInMinutes(timeCell),
+        name: tableCells[0]?.textContent?.trim() ?? '',
+        status: extractFitnessparkStatus(statusText)[0],
+        freeSlots: extractFitnessparkStatus(statusText)[1] ?? 0,
+        location: cells[3]?.textContent?.trim() ?? '',
+        room: extractRoomNumber(cells[4]?.textContent?.trim() ?? ''),
+        trainer: cells[5]?.textContent?.trim() ?? '',
       }
 
       events.push(data)

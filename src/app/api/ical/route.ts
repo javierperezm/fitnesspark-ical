@@ -32,7 +32,8 @@ export const GET = async (req: Request) => {
   const urlParams = new URL(req.url).searchParams
   const format: ReturnFormat =
     (urlParams.get('format') as ReturnFormat) ?? 'ical'
-  const shops = urlParams.get('shops')?.split(',').map(Number) ?? [] // 169 = Zug
+  const shopsParam = urlParams.get('shops') ?? urlParams.get('shop')
+  const shops = shopsParam?.split(',').map(Number).filter(Boolean) ?? [] // 169 = Zug
   const filters = urlParams.get('categories')?.split(',').map(Number) ?? []
 
   await updateCachedShops(shops)

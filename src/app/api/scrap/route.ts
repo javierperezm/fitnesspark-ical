@@ -7,9 +7,17 @@ export const GET = async (req: Request) => {
   const urlParams = new URL(req.url).searchParams
   const format: ReturnFormat =
     (urlParams.get('format') as ReturnFormat) ?? 'ical'
-  const shops = urlParams.get('shops')?.split(',').map(Number) ?? []
+  const shopsParam = urlParams.get('shops') ?? urlParams.get('shop')
+  const shops = shopsParam?.split(',').map(Number).filter(Boolean) ?? []
 
-  const date = new Date('2025-03-24')
+  if (shops.length === 0) {
+    return Response.json(
+      { error: 'Missing required parameter: shops or shop' },
+      { status: 400 },
+    )
+  }
+
+  const date = new Date('2026-01-20')
 
   if (format === 'html') {
     const html = await fetchData(shops[0], date)
