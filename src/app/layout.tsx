@@ -1,8 +1,8 @@
-import { Analytics } from '@vercel/analytics/react'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Link from 'next/link'
 
+import { env } from '@/env'
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider'
 
 import './globals.css'
@@ -58,7 +58,13 @@ https://javierperez.com?utm_sourcefitnesspark-ical&utm_medium=footer&utm_campaig
             • <span>made in 🇨🇭 with ❤️ </span>
           </p>
         </footer>
-        <Analytics />
+        {env.UMAMI_WEBSITE_ID && (
+          <script
+            defer
+            src="https://analytics.javierperez.com/script.js"
+            data-website-id={env.UMAMI_WEBSITE_ID}
+          />
+        )}
       </body>
     </html>
   )
