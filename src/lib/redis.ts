@@ -18,22 +18,38 @@ const getClient = (): Redis => {
 }
 
 // Wrapper that mimics Upstash API (auto JSON serialization)
+// Gracefully handles connection failures by returning null/defaults
 export const redis = {
   async get<T>(key: string): Promise<T | null> {
-    const val = await getClient().get(key)
-    if (val === null) return null
     try {
-      return JSON.parse(val) as T
-    } catch {
-      return val as unknown as T
+      const val = await getClient().get(key)
+      if (val === null) return null
+      try {
+        return JSON.parse(val) as T
+      } catch {
+        return val as unknown as T
+      }
+    } catch (err) {
+      console.error('Redis get error:', err)
+      return null
     }
   },
 
-  async set<T>(key: string, value: T): Promise<'OK'> {
-    return getClient().set(key, JSON.stringify(value))
+  async set<T>(key: string, value: T): Promise<'OK' | null> {
+    try {
+      return await getClient().set(key, JSON.stringify(value))
+    } catch (err) {
+      console.error('Redis set error:', err)
+      return null
+    }
   },
 
   async expire(key: string, seconds: number): Promise<number> {
-    return getClient().expire(key, seconds)
+    try {
+      return await getClient().expire(key, seconds)
+    } catch (err) {
+      console.error('Redis expire error:', err)
+      return 0
+    }
   },
 }
