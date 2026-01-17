@@ -1,8 +1,39 @@
-import { Redis } from '@upstash/redis'
+import Redis from 'ioredis'
 
-import { KV_REST_API_TOKEN, KV_REST_API_URL } from '@/config'
+import { env } from '@/env'
 
-export const redis = new Redis({
-  url: KV_REST_API_URL,
-  token: KV_REST_API_TOKEN,
-})
+let client: Redis | null = null
+
+const getClient = (): Redis => {
+  if (!client) {
+    client = new Redis(env.REDIS_URL, {
+      lazyConnect: true,
+      maxRetriesPerRequest: 3,
+      connectTimeout: 10000,
+      enableOfflineQueue: false,
+    })
+    client.on('error', (err) => console.error('Redis error:', err))
+  }
+  return client
+}
+
+// Wrapper that mimics Upstash API (auto JSON serialization)
+export const redis = {
+  async get<T>(key: string): Promise<T | null> {
+    const val = await getClient().get(key)
+    if (val === null) return null
+    try {
+      return JSON.parse(val) as T
+    } catch {
+      return val as unknown as T
+    }
+  },
+
+  async set<T>(key: string, value: T): Promise<'OK'> {
+    return getClient().set(key, JSON.stringify(value))
+  },
+
+  async expire(key: string, seconds: number): Promise<number> {
+    return getClient().expire(key, seconds)
+  },
+}

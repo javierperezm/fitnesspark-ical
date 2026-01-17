@@ -1,4 +1,4 @@
-import { CRON_SECRET } from '@/config'
+import { env } from '@/env'
 import { getShopsFromCache } from '@/lib/cachedShops'
 import { saveEventsToCache } from '@/lib/eventsCache'
 import { ScrapperWorker } from '@/lib/scrapper-worker'
@@ -8,8 +8,8 @@ export const GET = async (req: Request) => {
   const hostname = new URL(req.url).hostname
   if (
     hostname !== 'localhost' &&
-    req.headers.get('Authorization') !== `Bearer ${CRON_SECRET}` &&
-    urlParams.get('secret') !== CRON_SECRET
+    req.headers.get('Authorization') !== `Bearer ${env.CRON_SECRET}` &&
+    urlParams.get('secret') !== env.CRON_SECRET
   ) {
     return new Response('Unauthorized', { status: 401 })
   }

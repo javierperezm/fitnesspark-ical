@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-import { GOOGLE_CALENDAR_ADD_BY_URL } from '@/config'
+import { GOOGLE_CALENDAR_ADD_BY_URL } from '@/env'
 import { useFilters } from '@/hooks/use-filters'
 import generateCalendarUrl from '@/lib/generateCalendarUrl'
 import { cn } from '@/lib/utils'

@@ -1,9 +1,9 @@
-import { BASE_URL } from '@/config'
+import { env } from '@/env'
 
 export default function generateCalendarUrl(
   locations: number[],
   categories: number[],
-  baseUrl: string = BASE_URL,
+  baseUrl: string = env.BASE_URL,
 ): string {
   const pieces = [
     `shops=${locations.join(',')}`,
