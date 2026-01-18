@@ -10,6 +10,8 @@ import {
   HtmlValidationResult,
 } from '@/types'
 
+const TIMEZONE = 'Europe/Zurich'
+
 export class ScrapperWorker {
   protected MAX_DAYS: number = 7
   protected MIN_TTL: number = 60 * 60 // 1h
@@ -24,18 +26,17 @@ export class ScrapperWorker {
   protected isFiltersDataSaved: boolean = false
 
   constructor(protected shops: number[]) {
-    // get 7 days of data
-    const today = new Date()
-    today.setDate(today.getDate() - 1)
+    // get 7 days of data using Europe/Zurich timezone
+    const todayZurich = DateTime.now().setZone(TIMEZONE).startOf('day')
+    const yesterday = todayZurich.minus({ days: 1 })
     for (let i = 0; i < 7; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
+      const date = yesterday.plus({ days: i }).toJSDate()
       this.dates.push(date)
     }
   }
 
   protected getKey = (shop: number, date: Date) =>
-    `fitnesspark-shop-day-events-${shop}-${DateTime.fromJSDate(date).toFormat('yyyy-MM-dd')}`
+    `fitnesspark-shop-day-events-${shop}-${DateTime.fromJSDate(date, { zone: TIMEZONE }).toFormat('yyyy-MM-dd')}`
 
   protected getCache = async (shop: number, date: Date) =>
     await redis.get<FitnessparkEvent[]>(this.getKey(shop, date))

@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
 
+const TIMEZONE = 'Europe/Zurich'
+
 export default function getFitnessParkUrl(data: {
   accountArea: number
   iframe: string
@@ -16,7 +18,7 @@ export default function getFitnessParkUrl(data: {
   url.searchParams.append('articles', data.articles.toString()) // "1" or "true"
 
   if (data.date) {
-    const day = DateTime.fromJSDate(data.date).toFormat('yyyy-MM-dd')
+    const day = DateTime.fromJSDate(data.date, { zone: TIMEZONE }).toFormat('yyyy-MM-dd')
     url.searchParams.append('date', day)
   }
 
