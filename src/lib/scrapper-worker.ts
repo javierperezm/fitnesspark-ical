@@ -1,9 +1,14 @@
 import { DateTime } from 'luxon'
 
 import delay from '@/lib/delay'
+import { sendStructureAlert } from '@/lib/emailAlerts'
 import extractEventsByDay from '@/lib/extractEventsByDay'
 import { redis } from '@/lib/redis'
-import { FitnessparkEvent, FitnessparkFetchDataFilter } from '@/types'
+import {
+  FitnessparkEvent,
+  FitnessparkFetchDataFilter,
+  HtmlValidationResult,
+} from '@/types'
 
 export class ScrapperWorker {
   protected MAX_DAYS: number = 7
@@ -12,6 +17,7 @@ export class ScrapperWorker {
   protected INTERVAL_SECONDS: number = 0.5
 
   protected events: FitnessparkEvent[] = []
+  protected validationFailures: HtmlValidationResult[] = []
 
   protected dates: Date[] = []
   protected queue: (() => Promise<FitnessparkEvent[]>)[] = []
@@ -68,12 +74,20 @@ export class ScrapperWorker {
 
   async scrapData(shop: number, date: Date): Promise<FitnessparkEvent[]> {
     const timeStart = Date.now()
-    const { events, locations, categories } = await extractEventsByDay(
-      shop,
-      date,
-    )
+    const { events, locations, categories, validation } =
+      await extractEventsByDay(shop, date)
     const timeElapsed = (Date.now() - timeStart) / 1000
     console.log('scrapData', { timeElapsed, shop, date, events: events.length })
+
+    // Collect validation failures
+    if (!validation.isValid) {
+      console.warn('HTML validation failed', {
+        shop,
+        date,
+        errors: validation.errors,
+      })
+      this.validationFailures.push(validation)
+    }
 
     await this.setCache(shop, date, events)
 
@@ -128,6 +142,14 @@ export class ScrapperWorker {
       timeElapsed,
       events: this.events.length,
     })
+
+    // Send alerts for validation failures
+    if (this.validationFailures.length > 0) {
+      console.warn('Sending structure alert', {
+        failures: this.validationFailures.length,
+      })
+      await sendStructureAlert(this.validationFailures)
+    }
 
     return this.events
   }

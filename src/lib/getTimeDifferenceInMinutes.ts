@@ -1,7 +1,7 @@
+import { splitTimeRange } from '@/lib/parseTimeRange'
+
 export default function getTimeDifferenceInMinutes(timeRange: string): number {
-  const parts = timeRange.split(' - ')
-  const start = parts[0] ?? ''
-  const end = parts[1]
+  const [start, end] = splitTimeRange(timeRange)
 
   if (!end) {
     // Default to 60 minutes if no end time provided

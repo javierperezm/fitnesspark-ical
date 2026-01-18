@@ -9,6 +9,10 @@ export const env = createEnv({
     BASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     UMAMI_WEBSITE_ID: z.string().optional(),
+    // Email alerts (Resend)
+    RESEND_API_KEY: z.string().min(1).optional(),
+    ALERT_EMAIL_TO: z.string().email().optional(),
+    ALERT_EMAIL_FROM: z.string().email().default("alerts@fitnesspark-ical.app"),
   },
   client: {
     // No client variables needed
@@ -20,6 +24,9 @@ export const env = createEnv({
     BASE_URL: process.env.BASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    ALERT_EMAIL_TO: process.env.ALERT_EMAIL_TO,
+    ALERT_EMAIL_FROM: process.env.ALERT_EMAIL_FROM,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });

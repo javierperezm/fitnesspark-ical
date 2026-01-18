@@ -5,7 +5,13 @@ import extractRoomNumber from '@/lib/extractRoomNumber'
 import fetchData from '@/lib/fetchData'
 import getTZDate from '@/lib/getTZDate'
 import getTimeDifferenceInMinutes from '@/lib/getTimeDifferenceInMinutes'
-import { FitnessparkEvent, FitnessparkFetchDataFilter } from '@/types'
+import { validateHtmlStructure } from '@/lib/htmlValidator'
+import { splitTimeRange } from '@/lib/parseTimeRange'
+import {
+  FitnessparkEvent,
+  FitnessparkFetchDataFilter,
+  HtmlValidationResult,
+} from '@/types'
 
 // scrapper
 export default async function extractEventsByDay(
@@ -15,8 +21,10 @@ export default async function extractEventsByDay(
   locations: FitnessparkFetchDataFilter[]
   categories: FitnessparkFetchDataFilter[]
   events: FitnessparkEvent[]
+  validation: HtmlValidationResult
 }> {
   const htmlContent = await fetchData(shop, date)
+  const validation = validateHtmlStructure(htmlContent, shop)
 
   const dom = new JSDOM(htmlContent)
   const document = dom.window.document
@@ -50,7 +58,7 @@ export default async function extractEventsByDay(
   const table = document.querySelector('table')
 
   if (!table) {
-    return { locations, categories, events: [] }
+    return { locations, categories, events: [], validation }
   }
 
   const rows = table.querySelectorAll('tr')
@@ -80,7 +88,7 @@ export default async function extractEventsByDay(
     } else if (row.classList.contains('course-list__table__course')) {
       // course
       const timeCell = cells[0]?.textContent ?? ''
-      const timeStart = timeCell.split(' - ')[0] ?? ''
+      const [timeStart] = splitTimeRange(timeCell)
 
       if (!timeStart || !currentDate) {
         console.warn('Missing time or date for course row')
@@ -107,5 +115,5 @@ export default async function extractEventsByDay(
       events.push(data)
     }
   })
-  return { locations, categories, events }
+  return { locations, categories, events, validation }
 }
