@@ -102,18 +102,15 @@ export class ScrapperWorker {
   }
 
   async waitForQueue(): Promise<void> {
-    return new Promise<void>(async (resolve) => {
-      while (this.queue.length > 0) {
-        const fn = this.queue.shift()
-        if (fn) {
-          const events = await fn()
-          this.events.push(...events)
-        }
-
-        if (this.queue.length > 0) await delay(this.INTERVAL_SECONDS)
+    while (this.queue.length > 0) {
+      const fn = this.queue.shift()
+      if (fn) {
+        const events = await fn()
+        this.events.push(...events)
       }
-      resolve()
-    })
+
+      if (this.queue.length > 0) await delay(this.INTERVAL_SECONDS)
+    }
   }
 
   async execute(): Promise<FitnessparkEvent[]> {

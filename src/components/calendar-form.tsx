@@ -11,7 +11,6 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Command,
   CommandEmpty,
@@ -39,7 +38,7 @@ export function CalendarForm() {
   const [selectedCenters, setSelectedCenters] = useState<number[]>([])
   const [selectedClassTypes, setSelectedClassTypes] = useState<number[]>([])
 
-  const { data, isError, isLoading } = useFilters()
+  const { data, isLoading } = useFilters()
 
   const handleCenterSelect = (centerId: number) => {
     setSelectedCenters((current) => {
