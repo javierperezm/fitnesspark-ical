@@ -11,8 +11,8 @@ export const env = createEnv({
     UMAMI_WEBSITE_ID: z.string().optional(),
     // Email alerts (Resend)
     RESEND_API_KEY: z.string().min(1).optional(),
-    ALERT_EMAIL_TO: z.string().email().optional(),
-    ALERT_EMAIL_FROM: z.string().email().default("alerts@fitnesspark-ical.app"),
+    ALERT_EMAIL_TO: z.string().min(1).optional(),
+    ALERT_EMAIL_FROM: z.string().min(1).default("alerts@fitnesspark-ical.app"),
   },
   client: {
     // No client variables needed
