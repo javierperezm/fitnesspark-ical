@@ -58,10 +58,10 @@ https://javierperez.com?utm_sourcefitnesspark-ical&utm_medium=footer&utm_campaig
             • <span>made in 🇨🇭 with ❤️ </span>
           </p>
         </footer>
-        {env.UMAMI_WEBSITE_ID && (
+        {env.UMAMI_WEBSITE_ID && env.UMAMI_WEBSITE_URL && (
           <script
             defer
-            src="https://analytics.javierperez.com/script.js"
+            src={`${env.UMAMI_WEBSITE_URL}script.js`}
             data-website-id={env.UMAMI_WEBSITE_ID}
           />
         )}
