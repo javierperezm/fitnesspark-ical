@@ -40,8 +40,7 @@ User Request → /api/ical → ScrapperWorker → extractEventsByDay → fetchDa
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `KV_REST_API_URL` | Yes | Upstash Redis REST URL |
-| `KV_REST_API_TOKEN` | Yes | Upstash Redis token |
+| `REDIS_URL` | Yes | Redis connection URL (e.g., `redis://localhost:6379`) |
 | `CRON_SECRET` | Yes | Secret for cron endpoint auth |
 | `BASE_URL` | Yes | Application base URL |
 | `RESEND_API_KEY` | No | Resend API key for email alerts |
