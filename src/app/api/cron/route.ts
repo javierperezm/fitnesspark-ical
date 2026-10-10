@@ -4,13 +4,7 @@ import { saveEventsToCache } from '@/lib/eventsCache'
 import { ScrapperWorker } from '@/lib/scrapper-worker'
 
 export const GET = async (req: Request) => {
-  const urlParams = new URL(req.url).searchParams
-  const hostname = new URL(req.url).hostname
-  if (
-    hostname !== 'localhost' &&
-    req.headers.get('Authorization') !== `Bearer ${env.CRON_SECRET}` &&
-    urlParams.get('secret') !== env.CRON_SECRET
-  ) {
+  if (req.headers.get('Authorization') !== `Bearer ${env.CRON_SECRET}`) {
     return new Response('Unauthorized', { status: 401 })
   }
 
@@ -26,6 +20,6 @@ export const GET = async (req: Request) => {
     return Response.json({ ok: true })
   } catch (error) {
     console.error(error)
-    return Response.json({ ok: false })
+    return Response.json({ ok: false }, { status: 500 })
   }
 }
